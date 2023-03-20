@@ -130,7 +130,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'tag', 'author', 'ingredients',
-                  'name', 'image', 'text', 'cooking_time')
+                  'name', 'image', 'text', 'cooking_time',)
 
     def validate(self, data):
         list_ingr = [item['ingredient'] for item in data['ingredients']]
@@ -182,7 +182,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class GetRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения полной информации о рецепте."""
-    tags = TagSerializer(many=True)
+    tag = TagSerializer(many=True)
     author = CustomUserSerializer(read_only=True)
     ingredients = IngredientInRecipeSerializer(read_only=True, many=True,
                                                source='recipe_ingredient')
@@ -192,10 +192,10 @@ class GetRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'tag', 'author', 'ingredients',
-                  'is_favorite', 'is_in_shopping_cart',
+                  'is_favorited', 'is_in_shopping_cart',
                   'name', 'image', 'text', 'cooking_time')
 
-    def get_is_favorite(self, object):
+    def get_is_favorited(self, object):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
@@ -205,7 +205,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return object.shopping_cart.filter(user=user).exists()
+        return object.shoppingcart.filter(user=user).exists()
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

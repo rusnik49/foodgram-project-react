@@ -5,7 +5,7 @@ from django_filters.rest_framework import FilterSet
 
 
 class IngredientFilter(FilterSet):
-    """Фильтр ингредиентов по названию"""
+    """Фильтр ингредиентов по их названию"""
     name = filters.CharFilter(method='filter_name')
 
     class Meta:
@@ -13,7 +13,7 @@ class IngredientFilter(FilterSet):
         fields = ('name',)
 
     def filter_name(self, queryset, name, value):
-        """Метод возвращает кверисет с заданным именем ингредиента."""
+        """Метод возвращает QuerySet с заданным именем ингредиента."""
         return queryset.filter(
             Q(name__istartswith=value) | Q(name__icontains=value)
         ).annotate(
