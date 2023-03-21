@@ -1,4 +1,6 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from users.models import User
 
 
@@ -15,6 +17,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ('name',)
 
     def __str__(self):
         return f'{self.name} {self.measurement_unit}'
@@ -79,7 +82,11 @@ class Recipe(models.Model):
         related_name='recipes',
     )
     cooking_time = models.PositiveIntegerField(
-        verbose_name='Время приготовления в минутах'
+        verbose_name='Время приготовления в минутах',
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(1440),
+        ],
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
@@ -108,11 +115,16 @@ class IngredientInRecipe(models.Model):
     )
     amount = models.PositiveIntegerField(
         verbose_name='Количество',
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(20000),
+        ]
     )
 
     class Meta:
         verbose_name = 'Ингредиент в рецепте',
         verbose_name_plural = 'Ингредиенты в рецептах'
+        ordering = ('recipe',)
 
 
 class Favorite(models.Model):
@@ -178,6 +190,7 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
+        ordering = ('id',)
         constraints = [
             models.UniqueConstraint(
                 fields=('user', 'author',),

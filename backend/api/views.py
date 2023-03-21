@@ -1,18 +1,21 @@
+from django.conf import settings
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from foodgram.settings import FILENAME
+
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
+
+from recipes.models import (Ingredient, IngredientInRecipe, Recipe,
+                            Subscription, Tag)
 from users.models import User
 
 from .filters import IngredientFilter, RecipeFilter
-from .models import Ingredient, IngredientInRecipe, Recipe, Subscription, Tag
 from .paginations import LimitPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FavoriteSerializer,
@@ -146,6 +149,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthorOrReadOnly]
     )
     def download_basket(self, request):
+        FILENAME = settings.FILENAME
         ingredients = IngredientInRecipe.objects.filter(
             recipe__shopping_cart__user=request.user
         ).values(
