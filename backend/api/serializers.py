@@ -7,8 +7,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingCart, Subscription, Tag)
-from users.models import User
+                            ShoppingCart, Tag)
+from users.models import User, Subscription
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -17,11 +17,21 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         model = User
         fields = (
             'email',
+            'id',
             'username',
             'first_name',
             'last_name',
             'password'
         )
+
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def validate_username(self, value):
+        if value == "me":
+            raise ValidationError(
+                'Невозможно создать пользователя с таким именем!'
+            )
+        return value
 
 
 class CustomUserSerializer(UserSerializer):
@@ -47,7 +57,7 @@ class CustomUserSerializer(UserSerializer):
         return Subscription.objects.filter(
             user=user,
             author=object.id
-            ).exists()
+        ).exists()
 
 
 class RecipeInfoSerializer(serializers.ModelSerializer):
@@ -64,9 +74,8 @@ class SubscriptionSerializer(UserSerializer):
     recipes_count = SerializerMethodField(read_only=True)
 
     class Meta(CustomUserSerializer.Meta):
-        fields = (
-                  CustomUserSerializer.Meta.fields +
-                  ('recipes', 'recipes_count'))
+        fields = (CustomUserSerializer.Meta.fields
+                  + ('recipes', 'recipes_count'))
 
     def get_recipes(self, object):
         request = self.context.get('request')
@@ -85,8 +94,8 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для тегов."""
     class Meta:
         model = Tag
-        fields = ('name', 'color', 'slug')
-        read_only_fields = ('name', 'color', 'slug')
+        fields = '__all__'
+        read_only_fields = ('__all__',)
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -123,16 +132,16 @@ class AddIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для создания рецепта.
-    Валидирует ингредиенты и возвращает GetRecipeSerializer."""
+    """Сериализатор создания рецепта.
+    Валидирует ингредиенты."""
     author = CustomUserSerializer(read_only=True)
     image = Base64ImageField()
     ingredients = AddIngredientSerializer(many=True)
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tag', 'author', 'ingredients',
-                  'name', 'image', 'text', 'cooking_time',)
+        fields = ('id', 'tags', 'author', 'ingredients',
+                  'name', 'image', 'text', 'cooking_time')
 
     def validate(self, data):
         list_ingr = [item['ingredient'] for item in data['ingredients']]
@@ -156,23 +165,23 @@ class RecipeSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         user = self.context.get('request').user
-        tags = validated_data.pop('tags')
+        tag = validated_data.pop('tag')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=user,
                                        **validated_data)
-        recipe.tags.set(tags)
+        recipe.tag.set(tag)
         self.get_ingredients(recipe, ingredients)
 
         return recipe
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        tags = validated_data.pop('tags')
+        tag = validated_data.pop('tag')
         ingredients = validated_data.pop('ingredients')
 
         IngredientInRecipe.objects.filter(recipe=instance).delete()
 
-        instance.tags.set(tags)
+        instance.tag.set(tag)
         self.get_ingredients(instance, ingredients)
 
         return super().update(instance, validated_data)

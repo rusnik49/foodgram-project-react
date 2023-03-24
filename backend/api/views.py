@@ -12,8 +12,8 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
 from rest_framework.response import Response
 
 from recipes.models import (Ingredient, IngredientInRecipe, Recipe,
-                            Subscription, Tag)
-from users.models import User
+                            Tag)
+from users.models import User, Subscription
 
 from .filters import IngredientFilter, RecipeFilter
 from .paginations import LimitPagination
@@ -54,10 +54,8 @@ class UsersViewSet(UserViewSet):
             if user == author:
                 return Response({'error': 'Невозможно подписаться на себя'},
                                 status=status.HTTP_400_BAD_REQUEST)
-            serializer = SubscriptionSerializer(
-                                                author,
-                                                context={'request': request}
-            )
+            serializer = SubscriptionSerializer(author,
+                                                context={'request': request})
 
             Subscription.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
