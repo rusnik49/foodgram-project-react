@@ -203,7 +203,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'tag', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_cart',
+                  'is_favorited', 'is_in_shoppingcart',
                   'name', 'image', 'text', 'cooking_time')
 
     def get_is_favorited(self, object):
@@ -212,7 +212,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
             return False
         return object.favorite.filter(user=user).exists()
 
-    def get_is_in_shopping_cart(self, object):
+    def get_is_in_shoppingcart(self, object):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
