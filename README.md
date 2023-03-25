@@ -1,7 +1,5 @@
 [![workflow yamdb_final](https://github.com/Nemets87/yamdb_final/actions/workflows/yamdb_workflow.yml/badge.svg?branch=master)](https://github.com/rusnik49/yamdb_final/actions/workflows/yamdb_workflow.yml)
--
-![example workflow](https://myoctocat.com/assets/images/base-octocat.svg)
--
+
 
 # Проект **foodgram-project-react** 
 
