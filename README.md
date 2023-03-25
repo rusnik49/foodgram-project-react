@@ -12,6 +12,8 @@
 
 # Как запустить проект чeрез Docker:
 
+Сайт http://84.201.137.47/recipes
+
 Должен быть уставлен Docker https://www.docker.com
 
 Клонируем репозиторий и переходим в него:
@@ -89,13 +91,6 @@ urllib3==1.26.15
 zipp==3.15.0
 
 ```
-пока мы проверяем все локально !
-frontend мы к каждому url добавляем this._url + и в самом конце 'http://localhost:8000' 
-- при отправке на сервер это все нужно будет удалить
-и вернуть как было !
-пока все локально собираем 
-```
-sudo su root дает возможность избежать слово sudo,но под рутом сидеть опасно 
 - создаем новый ВМ с ubuntu 20.04 (НЕ 22.04!!!!) 
 - не заходим на сервер == все локально
 
@@ -132,3 +127,5 @@ docker-compose exec backend python manage.py createsuperuser
 Далее соберите статику
 ```
 docker-compose exec backend python manage.py collectstatic --noinput
+
+Сайт http://84.201.137.47/recipes
