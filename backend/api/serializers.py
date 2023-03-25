@@ -67,9 +67,8 @@ class RecipeInfoSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class SubscriptionSerializer(UserSerializer):
+class SubscriptionSerializer(CustomUserSerializer):
     """Сериализатор для добавления/удаления подписки и просмотра подписок."""
-
     recipes = SerializerMethodField(read_only=True)
     recipes_count = SerializerMethodField(read_only=True)
 
@@ -80,7 +79,7 @@ class SubscriptionSerializer(UserSerializer):
     def get_recipes(self, object):
         request = self.context.get('request')
         context = {'request': request}
-        recipe_limit = request.query_params.get('recipe_limit')
+        recipe_limit = request.query_params.get('recipes_limit')
         queryset = object.recipes.all()
         if recipe_limit:
             queryset = queryset[:int(recipe_limit)]
@@ -137,6 +136,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     image = Base64ImageField()
     ingredients = AddIngredientSerializer(many=True)
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(), many=True
+    )
 
     class Meta:
         model = Recipe
@@ -165,7 +167,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         user = self.context.get('request').user
-        tag = validated_data.pop('tag')
+        tag = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=user,
                                        **validated_data)
@@ -176,10 +178,11 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        tag = validated_data.pop('tag')
+        tag = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
 
-        IngredientInRecipe.objects.filter(recipe=instance).delete()
+        instance.tag.clear()
+        instance.ingredients.clear()
 
         instance.tag.set(tag)
         self.get_ingredients(instance, ingredients)
@@ -193,7 +196,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class GetRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения полной информации о рецепте."""
-    tag = TagSerializer(many=True)
+    tags = TagSerializer(many=True, source='tag')
     author = CustomUserSerializer(read_only=True)
     ingredients = IngredientInRecipeSerializer(read_only=True, many=True,
                                                source='recipe_ingredient')
@@ -202,7 +205,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tag', 'author', 'ingredients',
+        fields = ('id', 'tags', 'author', 'ingredients',
                   'is_favorited', 'is_in_shoppingcart',
                   'name', 'image', 'text', 'cooking_time')
 

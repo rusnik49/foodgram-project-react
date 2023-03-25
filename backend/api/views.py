@@ -5,10 +5,11 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (AllowAny, IsAuthenticated)
+from djoser.permissions import CurrentUserOrAdminOrReadOnly
 from rest_framework.response import Response
 
 from recipes.models import (Ingredient, IngredientInRecipe, Recipe,
@@ -21,7 +22,7 @@ from .permissions import IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FavoriteSerializer,
                           IngredientSerializer, RecipeSerializer,
                           ShoppingCartSerializer, SubscriptionSerializer,
-                          TagSerializer)
+                          TagSerializer, GetRecipeSerializer)
 
 
 class UsersViewSet(UserViewSet):
@@ -30,7 +31,7 @@ class UsersViewSet(UserViewSet):
     создание/получение/удаления подписок."""
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (CurrentUserOrAdminOrReadOnly,)
     pagination_class = LimitPagination
     http_method_names = ['get', 'post', 'delete', 'head']
 
@@ -101,11 +102,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
      Обработка запросов на создание/получение/редактирование/удаление рецептов
      Добавление/удаление рецепта в избранное и список покупок"""
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    serializer_class = GetRecipeSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = LimitPagination
+
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return GetRecipeSerializer
+        return RecipeSerializer
 
     def action_post_delete(self, pk, serializer_class):
         user = self.request.user
@@ -142,7 +148,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=["GET"],
         url_path='download_shopping_cart',
-        url_name='download_shopping_cart',
         pagination_class=None,
         permission_classes=[IsAuthorOrReadOnly]
     )

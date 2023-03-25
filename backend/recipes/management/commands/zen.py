@@ -29,5 +29,6 @@ class Command(BaseCommand):
                         name=name,
                         measurement_unit=measurement_unit
                     )
+                self.stdout.write(self.style.SUCCESS('Все данные загружены'))
         except FileNotFoundError:
             raise CommandError('Добавьте файл ingredients в папку data')
