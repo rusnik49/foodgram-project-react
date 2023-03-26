@@ -141,13 +141,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self.action_post_delete(pk, FavoriteSerializer)
 
     @action(methods=['POST', 'DELETE'], detail=True)
-    def shoppingcart(self, request, pk):
+    def shopping_cart(self, request, pk):
         return self.action_post_delete(pk, ShoppingCartSerializer)
 
     @action(
         detail=False,
         methods=["GET"],
-        url_path='download_shoppingcart',
+        url_path='download_shoppin_gcart',
         pagination_class=None,
         permission_classes=[IsAuthorOrReadOnly]
     )
