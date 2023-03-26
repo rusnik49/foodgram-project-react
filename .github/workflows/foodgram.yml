@@ -50,6 +50,9 @@ jobs:
           file: ./backend/Dockerfile 
           push: true 
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:v1
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build_and_push_to_docker_hub
     steps: 
       - name: executing remote ssh command to deploy 
         uses: appleboy/ssh-action@master 
