@@ -141,21 +141,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self.action_post_delete(pk, FavoriteSerializer)
 
     @action(methods=['POST', 'DELETE'], detail=True)
-    def shoppingcart(self, request, pk):
+    def shopping_cart(self, request, pk):
         return self.action_post_delete(pk, ShoppingCartSerializer)
 
     @action(
         detail=False,
         methods=["GET"],
-        url_path='download_shoppingcart',
-        url_name='download_shoppingcart',
+        url_path='download_shopping_cart',
+        url_name='download_shopping_cart',
         pagination_class=None,
         permission_classes=[IsAuthorOrReadOnly]
     )
-    def download_shoppingcart(self, request):
+    def download_shopping_cart(self, request):
         FILENAME = settings.FILENAME
         ingredients = IngredientInRecipe.objects.filter(
-            recipe__shoppingcart__user=request.user
+            recipe__shopping_cart__user=request.user
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
