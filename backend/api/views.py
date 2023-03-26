@@ -147,7 +147,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        url_path='download_shoppin_gcart',
+        url_path='download_shopping_cart',
         url_name='download_shopping_cart',
         pagination_class=None,
         permission_classes=[IsAuthorOrReadOnly]
